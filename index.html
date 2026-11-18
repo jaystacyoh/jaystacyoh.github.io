@@ -617,7 +617,7 @@
       btn.addEventListener('click', function () {
         applyRate(rate);
         el.rateInput.value = rateText(rate);
-        el.jpyInput.value = String(Math.round(item.jpy));
+        el.jpyInput.value = thousands(item.jpy);
         syncFromJpy();
         el.jpyInput.focus();
       });
@@ -651,7 +651,7 @@
       el.krwInput.value = '';
     } else {
       state.jpy = n;
-      el.krwInput.value = String(Math.round(krwOf(n)));
+      el.krwInput.value = thousands(krwOf(n));
     }
     renderResults();
   }
@@ -664,14 +664,14 @@
     } else {
       var jpy = state.rate > 0 ? Math.round(n / state.rate * 100) : 0;
       state.jpy = jpy;
-      el.jpyInput.value = String(jpy);
+      el.jpyInput.value = thousands(jpy);
     }
     renderResults();
   }
 
   function resyncKrw() {
     if (state.jpy > 0) {
-      el.krwInput.value = String(Math.round(krwOf(state.jpy)));
+      el.krwInput.value = thousands(krwOf(state.jpy));
     }
     renderResults();
   }
@@ -789,6 +789,21 @@
     syncFromKrw();
   });
 
+  [el.jpyInput, el.krwInput].forEach(function (input) {
+    input.addEventListener('focus', function () {
+      var plain = input.value.split(',').join('');
+      if (plain !== input.value) {
+        input.value = plain;
+      }
+    });
+    input.addEventListener('blur', function () {
+      var n = toNumber(input.value);
+      if (!isNaN(n) && n > 0 && Math.round(n) === n) {
+        input.value = thousands(n);
+      }
+    });
+  });
+
   Array.prototype.forEach.call(el.quickChips.querySelectorAll('.chip[data-add]'), function (chip) {
     chip.addEventListener('click', function () {
       var delta = Number(chip.getAttribute('data-add'));
@@ -797,7 +812,7 @@
         current = 0;
       }
       var next = current + delta;
-      el.jpyInput.value = String(Math.round(next));
+      el.jpyInput.value = thousands(next);
       syncFromJpy();
     });
   });
