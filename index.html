@@ -58,6 +58,8 @@
     font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
     font-size:16px;
     line-height:1.5;
+    word-break:keep-all;
+    overflow-wrap:break-word;
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:520px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom))}
@@ -159,7 +161,7 @@
   .step-btn:active{transform:scale(.95)}
   .step-value{min-width:92px;display:flex;align-items:baseline;justify-content:center;gap:3px}
   .step-value strong{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
-  .step-value span{font-size:14px;color:var(--muted);font-weight:700}
+  .step-value span{font-size:15px;color:var(--muted);font-weight:700}
   .split-result{margin-top:12px;background:var(--accent-soft);border-radius:14px;padding:14px}
   .per{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
   .per .k{font-size:13px;font-weight:700;color:var(--muted)}
