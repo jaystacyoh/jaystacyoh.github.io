@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f7fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+<meta name="description" content="민영주택 청약 가점(무주택기간 32점·부양가족 35점·청약통장 17점, 84점 만점)과 지역·전용면적별 청약 예치금 충족 여부를 한 화면에서 계산합니다.">
+<title>청약 가점·예치금 계산기</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Ctext x='32' y='45' font-size='34' font-family='sans-serif' font-weight='700' text-anchor='middle' fill='%23ffffff'%3E%F0%9F%8F%A0%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#f4f6fb;
+    --card:#ffffff;
+    --field:#f7f9fd;
+    --text:#0f172a;
+    --muted:#64748b;
+    --line:#e3e9f3;
+    --accent:#2563eb;
+    --accent-ink:#ffffff;
+    --accent-soft:#e8f0ff;
+    --ok:#0b7a4b;
+    --ok-soft:#e4f6ec;
+    --warn:#b45309;
+    --warn-soft:#fdf1df;
+    --ring:rgba(37,99,235,.18);
+    --shadow:0 1px 2px rgba(15,23,42,.05), 0 8px 24px -18px rgba(15,23,42,.45);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.14);
+    --radius:18px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0e1116;
+      --card:#171b22;
+      --field:#1d222b;
+      --text:#eef2f8;
+      --muted:#98a2b3;
+      --line:#262d38;
+      --accent:#5b8cff;
+      --accent-ink:#08111f;
+      --accent-soft:#1b2638;
+      --ok:#4ade80;
+      --ok-soft:#13291f;
+      --warn:#fbbf24;
+      --warn-soft:#2a2214;
+      --ring:rgba(91,140,255,.28);
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.9);
+      --shadow-sm:0 1px 3px rgba(0,0,0,.5);
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.5;
+    word-break:keep-all;
+    overflow-wrap:break-word;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom))}
+
+  .topnav{display:flex;justify-content:flex-end;margin:0 2px 10px}
+  .home-link{
+    font-size:12.5px;font-weight:700;color:var(--accent);text-decoration:none;
+    background:var(--accent-soft);border-radius:999px;padding:7px 12px;
+  }
+  .home-link:active{transform:scale(.98)}
+
+  .hero{margin:0 4px 14px}
+  h1{font-size:21px;line-height:1.32;margin:0 0 6px;letter-spacing:-.02em}
+  .hero p{margin:0;color:var(--muted);font-size:13.5px}
+  .hero .src{margin-top:6px;font-size:11.5px}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:12px;
+    box-shadow:var(--shadow);
+  }
+  .card-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .card-head h2{font-size:15px;margin:0;letter-spacing:-.01em}
+  .stamp{font-size:11.5px;color:var(--muted);white-space:nowrap}
+
+  input,select,button{font:inherit;color:inherit}
+  input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  ::-webkit-calendar-picker-indicator{opacity:.6}
+
+  /* 총점 */
+  .total-card{background:var(--card)}
+  .total-line{display:flex;align-items:flex-end;gap:8px;margin:2px 0 14px}
+  .total-line strong{font-size:40px;line-height:1;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--accent)}
+  .total-line span{font-size:14px;font-weight:700;color:var(--muted);padding-bottom:3px}
+  .total-line .grade{margin-left:auto;font-size:12px;font-weight:800;color:var(--muted);background:var(--field);border:1px solid var(--line);border-radius:999px;padding:5px 10px;align-self:center}
+  .bars{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+  .bar-row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:12.5px;color:var(--muted);font-weight:700}
+  .bar-row b{color:var(--text);font-variant-numeric:tabular-nums;font-weight:800}
+  .bar-row .bar{grid-column:1 / -1;height:7px;border-radius:999px;background:var(--field);overflow:hidden;border:1px solid var(--line)}
+  .bar-row .bar i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .18s ease}
+
+  /* 폼 */
+  .field{margin-bottom:10px}
+  .field:last-of-type{margin-bottom:0}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin:0 0 6px 2px}
+  .input-wrap{
+    display:flex;align-items:center;min-height:56px;padding:0 14px;gap:8px;
+    background:var(--field);border:1px solid var(--line);border-radius:16px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .input-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--ring)}
+  .input-wrap input,.input-wrap select{
+    flex:1;min-width:0;border:0;background:transparent;outline:none;
+    font-size:17px;font-weight:700;padding:12px 0;font-variant-numeric:tabular-nums;
+    appearance:none;-webkit-appearance:none;
+  }
+  .input-wrap input::placeholder{color:var(--muted);opacity:.55;font-weight:700}
+  .input-wrap .suffix{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}
+  select.input, .input-wrap select{
+    background-image:none;
+  }
+  .select-wrap{position:relative}
+  .select-wrap::after{
+    content:"";position:absolute;right:16px;top:50%;width:8px;height:8px;
+    border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+    transform:translateY(-70%) rotate(45deg);pointer-events:none;
+  }
+  select{width:100%;cursor:pointer;padding-right:26px !important}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (max-width:400px){ .field-row{grid-template-columns:1fr} }
+
+  .seg{display:flex;gap:6px;background:var(--field);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:12px}
+  .seg-btn{
+    flex:1;font:inherit;font-size:13px;font-weight:700;min-height:42px;
+    border:0;border-radius:11px;background:transparent;color:var(--muted);cursor:pointer;
+    padding:0 6px;
+  }
+  .seg-btn.is-on{background:var(--accent);color:var(--accent-ink);box-shadow:var(--shadow-sm)}
+  .seg-btn:active{transform:scale(.985)}
+
+  .check{display:flex;align-items:flex-start;gap:9px;margin:10px 0 0;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer}
+  .check input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--accent);flex:0 0 auto}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+  .chip{
+    font:inherit;font-size:12.5px;font-weight:700;min-height:38px;padding:0 12px;
+    border-radius:999px;border:1px solid var(--line);background:var(--field);color:var(--text);
+    cursor:pointer;font-variant-numeric:tabular-nums;
+  }
+  .chip:active{transform:scale(.97)}
+
+  .result-line{
+    display:flex;align-items:baseline;gap:8px;
+    margin:14px 0 0;padding:11px 13px;border-radius:13px;
+    background:var(--accent-soft);font-size:13px;font-weight:700;color:var(--muted);
+  }
+  .result-line b{font-size:19px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .result-line .detail{margin-left:auto;text-align:right;font-size:11.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  .note{margin:10px 0 0;font-size:12px;line-height:1.55;color:var(--muted)}
+  .note.tight{margin-top:8px}
+  .note[data-state="warn"]{color:var(--warn)}
+  .note[data-state="ok"]{color:var(--ok)}
+  .note strong{font-weight:800}
+
+  /* 예치금 */
+  .dep-summary{margin:0 0 12px;padding:13px;border-radius:14px;background:var(--accent-soft)}
+  .dep-summary .k{display:block;font-size:11.5px;font-weight:800;color:var(--muted);margin-bottom:3px}
+  .dep-summary strong{font-size:17px;font-weight:800;color:var(--accent);line-height:1.35;display:block}
+  .dep-summary .sub{margin:5px 0 0;font-size:11.5px;font-weight:700;color:var(--muted)}
+  .dep-summary .sub[data-state="ok"]{color:var(--ok)}
+  .dep-summary .sub[data-state="warn"]{color:var(--warn)}
+  .dep-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .dep-row{
+    display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;
+    background:var(--field);border:1px solid var(--line);border-radius:13px;padding:10px 12px;
+  }
+  .dep-row.is-max{border-color:var(--accent);background:var(--accent-soft)}
+  .dep-area{font-size:13.5px;font-weight:800}
+  .dep-need{font-size:11.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+  .status{grid-row:1 / span 2;grid-column:2;font-size:11.5px;font-weight:800;padding:5px 9px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .status.ok{background:var(--ok-soft);color:var(--ok)}
+  .status.warn{background:var(--warn-soft);color:var(--warn)}
+
+  /* 표 */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
+  table{border-collapse:collapse;width:100%;font-size:12px;min-width:430px}
+  caption{caption-side:top;text-align:left;font-size:11.5px;color:var(--muted);padding:0 0 8px}
+  th,td{padding:8px 7px;border-bottom:1px solid var(--line);text-align:center;font-variant-numeric:tabular-nums}
+  th{font-size:11px;font-weight:800;color:var(--muted);background:var(--field);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:0}
+  td b{font-weight:800}
+  .ratio-key{font-weight:800}
+  .ratio-key.win{color:var(--accent)}
+
+  ul.tips{margin:0;padding-left:17px;font-size:12.5px;line-height:1.65;color:var(--muted)}
+  ul.tips li{margin-bottom:5px}
+  ul.tips li:last-child{margin-bottom:0}
+  ul.tips b{color:var(--text);font-weight:800}
+
+  footer{margin:20px 6px 0;text-align:center;font-size:11.5px;line-height:1.65;color:var(--muted)}
+  footer a{color:var(--accent);font-weight:700;text-decoration:none}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;animation:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="topnav"><a class="home-link" href="/">엔화·면세 계산기 →</a></div>
+    <h1>청약 가점·예치금 계산기</h1>
+    <p>무주택기간 32 + 부양가족 35 + 통장 17 = 84점, 그리고 지역별 예치금 판정까지</p>
+    <p class="src">「주택공급에 관한 규칙」 별표 1·별표 2 · 청약홈 기준</p>
+  </header>
+
+  <main>
+    <!-- 총점 -->
+    <section class="card total-card" aria-labelledby="totalTitle">
+      <div class="card-head">
+        <h2 id="totalTitle">내 가점</h2>
+        <span class="stamp">84점 만점</span>
+      </div>
+      <div class="total-line">
+        <strong id="totalPts">5</strong>
+        <span>/ 84점</span>
+        <span class="grade" id="totalGrade">여지 +79점</span>
+      </div>
+      <ul class="bars">
+        <li class="bar-row">
+          <span>무주택기간</span><b><span id="barHome">0</span> / 32</b>
+          <span class="bar"><i id="fillHome" style="width:0%"></i></span>
+        </li>
+        <li class="bar-row">
+          <span>부양가족 수</span><b><span id="barDep">5</span> / 35</b>
+          <span class="bar"><i id="fillDep" style="width:14.3%"></i></span>
+        </li>
+        <li class="bar-row">
+          <span>청약통장 가입기간</span><b><span id="barAcct">0</span> / 17</b>
+          <span class="bar"><i id="fillAcct" style="width:0%"></i></span>
+        </li>
+      </ul>
+      <div class="chips">
+        <button type="button" class="chip" id="saveBtn">저장</button>
+        <button type="button" class="chip" id="resetBtn">초기화</button>
+      </div>
+      <p class="note tight" id="storeMsg" role="status" aria-live="polite">입력값은 이 브라우저에만 저장되고 어디로도 전송되지 않습니다.</p>
+    </section>
+
+    <!-- ① 무주택기간 -->
+    <section class="card" aria-labelledby="homeTitle">
+      <div class="card-head">
+        <h2 id="homeTitle">1. 무주택기간</h2>
+        <span class="stamp">최대 32점</span>
+      </div>
+      <div class="seg" role="group" aria-label="무주택기간 입력 방식">
+        <button type="button" class="seg-btn is-on" data-home-mode="bracket" aria-pressed="true">기간 직접 선택</button>
+        <button type="button" class="seg-btn" data-home-mode="date" aria-pressed="false">날짜로 계산</button>
+      </div>
+
+      <div id="homeBracketPane">
+        <div class="field">
+          <label for="homeSel">무주택기간</label>
+          <div class="input-wrap select-wrap"><select id="homeSel" class="input"></select></div>
+        </div>
+      </div>
+
+      <div id="homeDatePane" hidden>
+        <div class="field-row">
+          <div class="field">
+            <label for="birthD">생년월일</label>
+            <div class="input-wrap"><input type="date" id="birthD"></div>
+          </div>
+          <div class="field">
+            <label for="baseD">기준일 (공고일)</label>
+            <div class="input-wrap"><input type="date" id="baseD"></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="marryD">혼인신고일 (선택)</label>
+            <div class="input-wrap"><input type="date" id="marryD"></div>
+          </div>
+          <div class="field">
+            <label for="soldD">처분 후 무주택일 (선택)</label>
+            <div class="input-wrap"><input type="date" id="soldD"></div>
+          </div>
+        </div>
+        <p class="note tight" id="homeCalcNote">만 30세가 되는 날(그 전에 혼인했다면 혼인신고일)부터 세고, 집을 판 적이 있으면 처분 후 무주택이 된 날부터 다시 셉니다.</p>
+      </div>
+
+      <label class="check" for="ownHouse">
+        <input type="checkbox" id="ownHouse">
+        <span>현재 세대원 중 주택 소유자(분양권 포함)가 있음 — 무주택기간 0점</span>
+      </label>
+
+      <p class="result-line">이 항목 <b id="homePts">0</b>점 <span class="detail" id="homeDetail"></span></p>
+    </section>
+
+    <!-- ② 부양가족 -->
+    <section class="card" aria-labelledby="depTitle">
+      <div class="card-head">
+        <h2 id="depTitle">2. 부양가족 수</h2>
+        <span class="stamp">최대 35점 · 본인 제외</span>
+      </div>
+      <div class="field">
+        <label>배우자</label>
+        <div class="seg" id="spouseSeg" role="group" aria-label="배우자 유무">
+          <button type="button" class="seg-btn is-on" data-spouse="0" aria-pressed="true">없음</button>
+          <button type="button" class="seg-btn" data-spouse="1" aria-pressed="false">있음</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="depParent">본인 직계존속 (부모·조부모)</label>
+        <div class="input-wrap select-wrap"><select id="depParent" class="input"></select></div>
+      </div>
+      <div class="field">
+        <label for="depSpouseParent">배우자 직계존속</label>
+        <div class="input-wrap select-wrap"><select id="depSpouseParent" class="input"></select></div>
+      </div>
+      <div class="field">
+        <label for="depChild">미혼 직계비속 (자녀·손자녀)</label>
+        <div class="input-wrap select-wrap"><select id="depChild" class="input"></select></div>
+      </div>
+      <p class="note" id="depGuide">직계존속은 <strong>내가 세대주이면서 3년 이상 같은 등본</strong>에 있어야 하고, 그중 한 명이라도 집이 있으면 두 분 모두 빠집니다. 자녀는 미혼만 인정됩니다.</p>
+      <p class="result-line">이 항목 <b id="depPts">5</b>점 <span class="detail" id="depDetail"></span></p>
+    </section>
+
+    <!-- ③ 청약통장 -->
+    <section class="card" aria-labelledby="acctTitle">
+      <div class="card-head">
+        <h2 id="acctTitle">3. 청약통장 가입기간</h2>
+        <span class="stamp">최대 17점 · 배우자 합산</span>
+      </div>
+      <div class="seg" role="group" aria-label="본인 가입기간 입력 방식">
+        <button type="button" class="seg-btn is-on" data-acct-mode="bracket" aria-pressed="true">기간 직접 선택</button>
+        <button type="button" class="seg-btn" data-acct-mode="date" aria-pressed="false">가입일로 계산</button>
+      </div>
+
+      <div id="acctBracketPane">
+        <div class="field">
+          <label for="acctSel">본인 가입기간</label>
+          <div class="input-wrap select-wrap"><select id="acctSel" class="input"></select></div>
+        </div>
+      </div>
+
+      <div id="acctDatePane" hidden>
+        <div class="field-row">
+          <div class="field">
+            <label for="joinD">통장 가입일</label>
+            <div class="input-wrap"><input type="date" id="joinD"></div>
+          </div>
+          <div class="field">
+            <label for="acctBirthD">생년월일 (선택)</label>
+            <div class="input-wrap"><input type="date" id="acctBirthD"></div>
+          </div>
+        </div>
+        <p class="note tight" id="acctCalcNote">생년월일을 넣으면 미성년 가입기간을 5년까지만 인정해 계산합니다(2024.7.1 시행). 2023년 말 이전 미성년 기간에는 2년까지만 인정되는 경과규정이 있어, 정확한 점수는 청약홈 순위확인서로 확인하세요.</p>
+      </div>
+
+      <div class="field" style="margin-top:12px">
+        <label for="spouseAcct">배우자 통장 가입기간 (50% 인정)</label>
+        <div class="input-wrap select-wrap"><select id="spouseAcct" class="input"></select></div>
+      </div>
+
+      <p class="note">배우자는 가입기간의 50%만 인정되어 <strong>최대 3점</strong>이고, 본인 점수와 합쳐 <strong>17점을 넘을 수 없습니다</strong>.</p>
+      <p class="result-line">이 항목 <b id="acctPts">0</b>점 <span class="detail" id="acctDetail"></span></p>
+    </section>
+
+    <!-- ④ 예치금 -->
+    <section class="card" aria-labelledby="dep2Title">
+      <div class="card-head">
+        <h2 id="dep2Title">4. 청약 예치금</h2>
+        <span class="stamp">민영주택 · 내 거주지역 기준</span>
+      </div>
+      <div class="field">
+        <label for="regionSel">거주지역</label>
+        <div class="input-wrap select-wrap">
+          <select id="regionSel" class="input">
+            <option value="seoul">서울 · 부산</option>
+            <option value="metro">기타 광역시</option>
+            <option value="etc">기타 시·군</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="depositInput">현재 통장 예치금</label>
+        <div class="input-wrap">
+          <input id="depositInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="0">
+          <span class="suffix">만 원</span>
+        </div>
+        <div class="chips" id="depChips" role="group" aria-label="기준 금액 빠른 입력"></div>
+      </div>
+
+      <div class="dep-summary" id="depSummary">
+        <span class="k">현재 지원 가능한 최대 전용면적</span>
+        <strong id="depMax">예치금을 입력하면 바로 판정합니다</strong>
+        <p class="sub" id="depSub"></p>
+      </div>
+      <ul class="dep-list" id="depList"></ul>
+
+      <p class="note">
+        예치금은 <strong>내 주민등록상 거주지역</strong> 기준입니다(단지 소재지 아님).
+        모집공고일 전날까지 채워야 하고, 공공분양은 일시납이 인정되지 않아 <strong>월 납입 인정 한도 25만 원</strong>이 따로 적용됩니다.
+        무순위(줍줍) 청약은 통장과 무관합니다.
+      </p>
+    </section>
+
+    <!-- ⑤ 참고 -->
+    <section class="card" aria-labelledby="ratioTitle">
+      <div class="card-head">
+        <h2 id="ratioTitle">가점제 · 추첨제 비율</h2>
+        <span class="stamp">민영주택 일반공급</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>가로로 밀어서 볼 수 있습니다. 「주택공급에 관한 규칙」 제28조 기준.</caption>
+          <thead>
+            <tr>
+              <th scope="col">전용면적</th>
+              <th scope="col">투기과열지구</th>
+              <th scope="col">청약과열지역</th>
+              <th scope="col">그 외 지역</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>60㎡ 이하</td>
+              <td><span class="ratio-key win">가점 40%</span> / 추첨 60%</td>
+              <td><span class="ratio-key win">가점 40%</span> / 추첨 60%</td>
+              <td>가점 40% 이하 / 추첨 60% 이상</td>
+            </tr>
+            <tr>
+              <td>60㎡ 초과 ~ 85㎡ 이하</td>
+              <td><span class="ratio-key win">가점 70%</span> / 추첨 30%</td>
+              <td><span class="ratio-key win">가점 70%</span> / 추첨 30%</td>
+              <td>가점 40% 이하 / 추첨 60% 이상</td>
+            </tr>
+            <tr>
+              <td>85㎡ 초과</td>
+              <td><span class="ratio-key win">가점 80%</span> / 추첨 20%</td>
+              <td><span class="ratio-key win">가점 50%</span> / 추첨 50%</td>
+              <td>추첨 100%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">그 외 지역의 가점제 비율은 40% 이하 범위에서 시장·군수·구청장이 정해 공고합니다. 수도권 공공택지는 60㎡ 이하 40%, 60~85㎡ 70%, 85㎡ 초과 80%입니다.</p>
+    </section>
+
+    <section class="card" aria-labelledby="tipTitle">
+      <div class="card-head"><h2 id="tipTitle">알아두면 좋은 것</h2><span class="stamp">2024 개정 반영</span></div>
+      <ul class="tips">
+        <li><b>다자녀 특별공급</b>은 2자녀 이상이면 대상이고, <b>일반공급과 중복 지원</b>할 수 있습니다.</li>
+        <li><b>부부 중복청약</b>이 허용되어 배우자 통장으로도 함께 넣을 수 있습니다. 배우자 통장의 가입기간 점수는 본인 점수에 합산됩니다.</li>
+        <li>가점이 같으면 <b>청약통장 가입기간이 긴 사람</b>이 우선입니다.</li>
+        <li>무주택기간·부양가족·통장 점수는 모두 <b>입주자모집공고일</b> 기준입니다. 오늘 날짜로 계산한 값과 공고일 기준 값이 다를 수 있습니다.</li>
+        <li>배우자 통장 점수는 청약홈에서 <b>배우자 기준 순위확인서</b>를 발급해 확인할 수 있습니다.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    계산 결과는 참고용입니다. 실제 가점·예치금은 입주자모집공고일 기준 세대별 주민등록등본·순위확인서로 확정되니 공고문을 확인하세요.<br>
+    근거: 「주택공급에 관한 규칙」 별표 1(가점제 적용기준)·별표 2(민영주택 청약 예치기준금액)·제28조 · 청약홈<br>
+    입력값은 이 브라우저에만 저장됩니다. · <a href="/">엔화·면세 계산기</a>
+  </footer>
+</div>
+
+<noscript>
+  <p style="text-align:center;padding:0 16px 24px">이 계산기는 자바스크립트가 필요합니다. 브라우저에서 자바스크립트를 켜고 다시 열어 주세요.</p>
+</noscript>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= 계산 핵심 (순수 함수) ================= */
+  /* CALC-CORE-START */
+  var DEPOSIT = {
+    seoul: { label: '서울 · 부산', need: [300, 600, 1000, 1500] },
+    metro: { label: '기타 광역시', need: [250, 400, 700, 1000] },
+    etc:   { label: '기타 시·군', need: [200, 300, 400, 500] }
+  };
+  var TIER_LABEL = ['전용 85㎡ 이하', '전용 102㎡ 이하', '전용 135㎡ 이하', '모든 면적'];
+
+  function ptsHomeBracket(i) {
+    i = Math.max(0, Math.min(16, i | 0));
+    return i === 0 ? 0 : 2 * i;
+  }
+  function ptsHomeFromMonths(m) {
+    m = Math.max(0, m | 0);
+    if (m < 12) return 2;
+    return Math.min(32, 2 * (Math.floor(m / 12) + 1));
+  }
+  function ptsDependents(n) {
+    n = Math.max(0, Math.min(6, n | 0));
+    return 5 * (n + 1);
+  }
+  function ptsAcctBracket(i) {
+    i = Math.max(0, Math.min(16, i | 0));
+    return i + 1;
+  }
+  function ptsAcctFromMonths(m) {
+    m = Math.max(0, m | 0);
+    if (m < 6) return 1;
+    if (m < 12) return 2;
+    return Math.min(17, Math.floor(m / 12) + 2);
+  }
+  function ptsSpouse(level) {
+    return Math.max(0, Math.min(3, level | 0));
+  }
+  function combineAcct(selfPts, spousePts) {
+    return Math.min(17, (selfPts | 0) + (spousePts | 0));
+  }
+  function depositNeed(region, tier) {
+    var t = DEPOSIT[region] || DEPOSIT.seoul;
+    tier = Math.max(0, Math.min(3, tier | 0));
+    return t.need[tier];
+  }
+  function maxAreaTier(deposit, region) {
+    var need = (DEPOSIT[region] || DEPOSIT.seoul).need;
+    for (var i = 3; i >= 0; i--) {
+      if (deposit >= need[i]) return i;
+    }
+    return -1;
+  }
+  function parseDate(s) {
+    if (!s) return null;
+    var p = String(s).split('-');
+    if (p.length !== 3) return null;
+    var y = +p[0], mo = +p[1], d = +p[2];
+    if (!y || !mo || !d) return null;
+    var dt = new Date(Date.UTC(y, mo - 1, d));
+    if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d) return null;
+    return dt;
+  }
+  function addYears(dt, n) {
+    var y = dt.getUTCFullYear() + n, m = dt.getUTCMonth(), d = dt.getUTCDate();
+    var t = new Date(Date.UTC(y, m, d));
+    if (t.getUTCMonth() !== m) t = new Date(Date.UTC(y, m + 1, 0));
+    return t;
+  }
+  function fullMonths(a, b) {
+    if (!a || !b || b.getTime() < a.getTime()) return 0;
+    var m = (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + (b.getUTCMonth() - a.getUTCMonth());
+    if (b.getUTCDate() < a.getUTCDate()) m--;
+    return Math.max(0, m);
+  }
+  function homeMonthsFromDates(birth, marry, sold, base) {
+    var b = parseDate(birth), bs = parseDate(base);
+    if (!b || !bs) return { ok: false, months: 0, pts: 0 };
+    var thirty = addYears(b, 30);
+    var mar = parseDate(marry);
+    var start = (mar && mar.getTime() < thirty.getTime()) ? mar : thirty;
+    var sd = parseDate(sold);
+    if (sd && sd.getTime() > start.getTime()) start = sd;
+    if (start.getTime() > bs.getTime()) return { ok: true, months: 0, pts: 0, beforeStart: true, start: start };
+    var m = fullMonths(start, bs);
+    return { ok: true, months: m, pts: ptsHomeFromMonths(m), beforeStart: false, start: start };
+  }
+  function acctMonthsFromDates(join, birth, base) {
+    var j = parseDate(join), bs = parseDate(base);
+    if (!j || !bs || bs.getTime() < j.getTime()) return { ok: false, months: 0, effective: 0, capped: 0, pts: 1 };
+    var total = fullMonths(j, bs);
+    var b = parseDate(birth);
+    var capped = 0;
+    if (b) {
+      var adult = addYears(b, 19);
+      if (adult.getTime() > j.getTime()) {
+        var endMs = Math.min(adult.getTime(), bs.getTime());
+        var minorMonths = fullMonths(j, new Date(endMs));
+        if (minorMonths > 60) capped = minorMonths - 60;
+      }
+    }
+    var eff = Math.max(0, total - capped);
+    return { ok: true, months: total, effective: eff, capped: capped, pts: ptsAcctFromMonths(eff) };
+  }
+  /* CALC-CORE-END */
+
+  /* ================= 상태 ================= */
+  var KEY = 'cheongyak.v1';
+  var DEFAULT_BASE = todayStr();
+
+  var state = {
+    homeMode: 'bracket',
+    homeIdx: 0,
+    ownHouse: false,
+    birthD: '',
+    marryD: '',
+    soldD: '',
+    baseD: DEFAULT_BASE,
+    spouse: 0,
+    depParent: 0,
+    depSpouseParent: 0,
+    depChild: 0,
+    acctMode: 'bracket',
+    acctIdx: 0,
+    joinD: '',
+    acctBirthD: '',
+    spouseAcct: 0,
+    region: 'seoul',
+    deposit: 0
+  };
+
+  var el = {};
+  var msgTimer = null;
+
+  /* ================= 유틸 ================= */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function thousands(n) {
+    if (!isFinite(n)) return '0';
+    return Math.round(n).toLocaleString('ko-KR');
+  }
+  function cleanInt(value) {
+    return String(value == null ? '' : value).replace(/[^0-9]/g, '');
+  }
+  function toInt(value) {
+    var s = cleanInt(value);
+    if (s === '') return 0;
+    var n = Number(s);
+    return isFinite(n) ? n : 0;
+  }
+  function yearsText(months) {
+    var y = Math.floor(months / 12), m = months % 12;
+    if (y <= 0) return m + '개월';
+    if (m === 0) return y + '년';
+    return y + '년 ' + m + '개월';
+  }
+  function clearNode(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  /* ================= 저장소 ================= */
+  function persist() {
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify(state));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  function restore() {
+    var raw;
+    try {
+      raw = window.localStorage.getItem(KEY);
+    } catch (e) {
+      return false;
+    }
+    if (!raw) return false;
+    var data;
+    try {
+      data = JSON.parse(raw);
+    } catch (e) {
+      return false;
+    }
+    if (!data || typeof data !== 'object') return false;
+    var num = function (v, min, max, alt) {
+      var n = Number(v);
+      if (!isFinite(n)) return alt;
+      return Math.max(min, Math.min(max, Math.round(n)));
+    };
+    var str = function (v) { return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ''; };
+    state.homeMode = data.homeMode === 'date' ? 'date' : 'bracket';
+    state.homeIdx = num(data.homeIdx, 0, 16, 0);
+    state.ownHouse = !!data.ownHouse;
+    state.birthD = str(data.birthD);
+    state.marryD = str(data.marryD);
+    state.soldD = str(data.soldD);
+    state.baseD = str(data.baseD) || DEFAULT_BASE;
+    state.spouse = data.spouse === 1 ? 1 : 0;
+    state.depParent = num(data.depParent, 0, 6, 0);
+    state.depSpouseParent = num(data.depSpouseParent, 0, 6, 0);
+    state.depChild = num(data.depChild, 0, 6, 0);
+    state.acctMode = data.acctMode === 'date' ? 'date' : 'bracket';
+    state.acctIdx = num(data.acctIdx, 0, 16, 0);
+    state.joinD = str(data.joinD);
+    state.acctBirthD = str(data.acctBirthD);
+    state.spouseAcct = num(data.spouseAcct, 0, 3, 0);
+    state.region = DEPOSIT[data.region] ? data.region : 'seoul';
+    state.deposit = num(data.deposit, 0, 100000, 0);
+    return true;
+  }
+
+  /* ================= 계산 ================= */
+  function homeResult() {
+    if (state.ownHouse) return { pts: 0, detail: '유주택' };
+    if (state.homeMode === 'bracket') {
+      return { pts: ptsHomeBracket(state.homeIdx), detail: state.homeIdx === 0 ? '만 30세 미만 미혼' : '' };
+    }
+    var r = homeMonthsFromDates(state.birthD, state.marryD, state.soldD, state.baseD);
+    if (!r.ok) return { pts: 0, detail: '생년월일 입력 필요' };
+    if (r.beforeStart) return { pts: 0, detail: '기산일 미도래' };
+    return { pts: r.pts, detail: yearsText(r.months) };
+  }
+  function depResult() {
+    var total = (state.spouse ? 1 : 0) + state.depParent + state.depSpouseParent + state.depChild;
+    return { pts: ptsDependents(total), total: total };
+  }
+  function acctResult() {
+    var self, selfNote = '';
+    if (state.acctMode === 'bracket') {
+      self = ptsAcctBracket(state.acctIdx);
+    } else {
+      var r = acctMonthsFromDates(state.joinD, state.acctBirthD, state.baseD);
+      self = r.pts;
+      if (!r.ok) selfNote = '가입일 입력 필요';
+      else if (r.capped > 0) selfNote = '미성년 ' + yearsText(r.capped) + ' 제외';
+    }
+    var sp = ptsSpouse(state.spouseAcct);
+    var combined = combineAcct(self, sp);
+    return { self: self, spouse: sp, combined: combined, capped: selfNote, limited: (self + sp) > 17 };
+  }
+  function depositResult() {
+    var dep = typeof state.deposit === 'number' && isFinite(state.deposit) ? state.deposit : 0;
+    return { deposit: dep, tier: maxAreaTier(dep, state.region) };
+  }
+
+  /* ================= 화면 ================= */
+  function setText(node, text) { node.textContent = text; }
+
+  function renderTotal() {
+    var h = homeResult().pts;
+    var d = depResult().pts;
+    var a = acctResult().combined;
+    var total = h + d + a;
+    setText(el.totalPts, String(total));
+    setText(el.totalGrade, '여지 +' + (84 - total) + '점');
+    setText(el.barHome, String(h));
+    setText(el.barDep, String(d));
+    setText(el.barAcct, String(a));
+    el.fillHome.style.width = (h / 32 * 100).toFixed(1) + '%';
+    el.fillDep.style.width = (d / 35 * 100).toFixed(1) + '%';
+    el.fillAcct.style.width = (a / 17 * 100).toFixed(1) + '%';
+  }
+
+  function renderHome() {
+    var r = homeResult();
+    setText(el.homePts, String(r.pts));
+    setText(el.homeDetail, r.detail || '');
+    el.homeBracketPane.hidden = state.homeMode !== 'bracket';
+    el.homeDatePane.hidden = state.homeMode !== 'date';
+    el.homeSel.disabled = state.ownHouse;
+    el.ownHouse.checked = state.ownHouse;
+    if (state.homeMode === 'date') {
+      if (state.ownHouse) {
+        setText(el.homeCalcNote, '세대원 중 주택 소유자가 있으면 무주택기간은 0점입니다.');
+        el.homeCalcNote.setAttribute('data-state', 'warn');
+      } else {
+        setText(el.homeCalcNote, '만 30세가 되는 날(그 전에 혼인했다면 혼인신고일)부터 세고, 집을 판 적이 있으면 처분 후 무주택이 된 날부터 다시 셉니다.');
+        el.homeCalcNote.removeAttribute('data-state');
+      }
+    }
+  }
+
+  function renderDep() {
+    var r = depResult();
+    setText(el.depPts, String(r.pts));
+    setText(el.depDetail, '부양가족 ' + r.total + '명');
+  }
+
+  function renderAcct() {
+    var r = acctResult();
+    setText(el.acctPts, String(r.combined));
+    var parts = [];
+    parts.push('본인 ' + r.self + '점');
+    if (r.spouse > 0) parts.push('배우자 ' + r.spouse + '점');
+    if (r.limited) parts.push('17점 상한 적용');
+    if (r.capped) parts.push(r.capped);
+    setText(el.acctDetail, parts.join(' · '));
+    el.acctBracketPane.hidden = state.acctMode !== 'bracket';
+    el.acctDatePane.hidden = state.acctMode !== 'date';
+  }
+
+  function renderDeposit() {
+    var res = depositResult();
+    var need = DEPOSIT[state.region].need;
+    var dep = res.deposit;
+
+    if (dep <= 0) {
+      setText(el.depMax, '예치금을 입력하면 바로 판정합니다');
+      setText(el.depSub, '가장 낮은 기준은 ' + thousands(need[0]) + '만 원입니다');
+      el.depSub.removeAttribute('data-state');
+    } else if (res.tier === 3) {
+      setText(el.depMax, '모든 면적 지원 가능');
+      setText(el.depSub, '예치금 ' + thousands(dep) + '만 원 · ' + DEPOSIT[state.region].label + ' 기준');
+      el.depSub.setAttribute('data-state', 'ok');
+    } else if (res.tier >= 0) {
+      setText(el.depMax, TIER_LABEL[res.tier] + '까지 지원 가능');
+      setText(el.depSub, TIER_LABEL[res.tier + 1] + '까지 ' + thousands(need[res.tier + 1] - dep) + '만 원 더 필요');
+      el.depSub.removeAttribute('data-state');
+    } else {
+      setText(el.depMax, '예치금이 부족합니다');
+      setText(el.depSub, '최소 ' + thousands(need[0]) + '만 원이 필요합니다');
+      el.depSub.setAttribute('data-state', 'warn');
+    }
+
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < 4; i++) {
+      var row = document.createElement('li');
+      row.className = 'dep-row' + (i === res.tier ? ' is-max' : '');
+
+      var area = document.createElement('span');
+      area.className = 'dep-area';
+      area.textContent = TIER_LABEL[i];
+
+      var needSpan = document.createElement('span');
+      needSpan.className = 'dep-need';
+      needSpan.textContent = '기준 ' + thousands(need[i]) + '만 원';
+
+      var status = document.createElement('span');
+      if (dep >= need[i]) {
+        status.className = 'status ok';
+        status.textContent = '충족';
+      } else {
+        status.className = 'status warn';
+        status.textContent = thousands(need[i] - dep) + '만 원 부족';
+      }
+
+      row.appendChild(area);
+      row.appendChild(needSpan);
+      row.appendChild(status);
+      frag.appendChild(row);
+    }
+    clearNode(el.depList);
+    el.depList.appendChild(frag);
+
+    var chips = DEPOSIT[state.region].need;
+    var cw = document.createDocumentFragment();
+    for (var k = 0; k < chips.length; k++) {
+      (function (amount) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip';
+        b.textContent = thousands(amount) + '만';
+        b.addEventListener('click', function () {
+          state.deposit = amount;
+          el.depositInput.value = thousands(amount);
+          sync();
+        });
+        cw.appendChild(b);
+      })(chips[k]);
+    }
+    var old = el.depChips.querySelectorAll('.chip');
+    for (var q = 0; q < old.length; q++) el.depChips.removeChild(old[q]);
+    el.depChips.appendChild(cw);
+  }
+
+  function sync(persistNow) {
+    renderHome();
+    renderDep();
+    renderAcct();
+    renderTotal();
+    renderDeposit();
+    if (persistNow !== false) persist();
+  }
+
+  function showMessage(text, status) {
+    setText(el.storeMsg, text);
+    if (status) el.storeMsg.setAttribute('data-state', status);
+    else el.storeMsg.removeAttribute('data-state');
+  }
+
+  /* ================= 컨트롤 구성 ================= */
+  function buildSelects() {
+    var i, o;
+    for (i = 0; i <= 16; i++) {
+      var label;
+      if (i === 0) label = '만 30세 미만 미혼 무주택 (0점)';
+      else if (i === 1) label = '1년 미만 (2점)';
+      else if (i === 16) label = '15년 이상 (32점)';
+      else label = (i - 1) + '년 이상 ~ ' + i + '년 미만 (' + (2 * i) + '점)';
+      o = document.createElement('option');
+      o.value = String(i);
+      o.textContent = label;
+      el.homeSel.appendChild(o);
+    }
+
+    for (i = 0; i <= 16; i++) {
+      var al;
+      if (i === 0) al = '6개월 미만 (1점)';
+      else if (i === 1) al = '6개월 이상 ~ 1년 미만 (2점)';
+      else if (i === 16) al = '15년 이상 (17점)';
+      else al = (i - 1) + '년 이상 ~ ' + i + '년 미만 (' + (i + 1) + '점)';
+      o = document.createElement('option');
+      o.value = String(i);
+      o.textContent = al;
+      el.acctSel.appendChild(o);
+    }
+
+    var depOpts = ['0명', '1명', '2명', '3명', '4명', '5명', '6명 이상'];
+    [el.depParent, el.depSpouseParent, el.depChild].forEach(function (sel) {
+      for (var n = 0; n < depOpts.length; n++) {
+        var op = document.createElement('option');
+        op.value = String(n);
+        op.textContent = depOpts[n];
+        sel.appendChild(op);
+      }
+    });
+
+    var spOpts = [
+      { v: 0, t: '배우자 없음 · 통장 미가입 (0점)' },
+      { v: 1, t: '1년 미만 (1점)' },
+      { v: 2, t: '1년 이상 ~ 2년 미만 (2점)' },
+      { v: 3, t: '2년 이상 (3점)' }
+    ];
+    spOpts.forEach(function (it) {
+      var op = document.createElement('option');
+      op.value = String(it.v);
+      op.textContent = it.t;
+      el.spouseAcct.appendChild(op);
+    });
+  }
+
+  function applyStateToControls() {
+    el.homeSel.value = String(state.homeIdx);
+    el.ownHouse.checked = state.ownHouse;
+    el.birthD.value = state.birthD;
+    el.marryD.value = state.marryD;
+    el.soldD.value = state.soldD;
+    el.baseD.value = state.baseD;
+    el.depParent.value = String(state.depParent);
+    el.depSpouseParent.value = String(state.depSpouseParent);
+    el.depChild.value = String(state.depChild);
+    el.acctSel.value = String(state.acctIdx);
+    el.joinD.value = state.joinD;
+    el.acctBirthD.value = state.acctBirthD;
+    el.spouseAcct.value = String(state.spouseAcct);
+    el.regionSel.value = state.region;
+    el.depositInput.value = state.deposit > 0 ? thousands(state.deposit) : '';
+
+    markHomeMode();
+    markAcctMode();
+    markSpouse();
+  }
+
+  function markHomeMode() {
+    document.querySelectorAll('[data-home-mode]').forEach(function (b) {
+      var on = b.getAttribute('data-home-mode') === state.homeMode;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  function markAcctMode() {
+    document.querySelectorAll('[data-acct-mode]').forEach(function (b) {
+      var on = b.getAttribute('data-acct-mode') === state.acctMode;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  function markSpouse() {
+    document.querySelectorAll('[data-spouse]').forEach(function (b) {
+      var on = Number(b.getAttribute('data-spouse')) === state.spouse;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  /* ================= 이벤트 ================= */
+  function bind() {
+    document.querySelectorAll('[data-home-mode]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.homeMode = b.getAttribute('data-home-mode');
+        markHomeMode();
+        sync();
+      });
+    });
+    document.querySelectorAll('[data-acct-mode]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.acctMode = b.getAttribute('data-acct-mode');
+        markAcctMode();
+        sync();
+      });
+    });
+    document.querySelectorAll('[data-spouse]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.spouse = Number(b.getAttribute('data-spouse'));
+        markSpouse();
+        sync();
+      });
+    });
+
+    el.homeSel.addEventListener('change', function () {
+      state.homeIdx = Number(el.homeSel.value) || 0;
+      sync();
+    });
+    el.ownHouse.addEventListener('change', function () {
+      state.ownHouse = !!el.ownHouse.checked;
+      sync();
+    });
+    [el.birthD, el.marryD, el.soldD, el.baseD].forEach(function (input) {
+      input.addEventListener('change', function () {
+        state.birthD = el.birthD.value;
+        state.marryD = el.marryD.value;
+        state.soldD = el.soldD.value;
+        state.baseD = el.baseD.value || DEFAULT_BASE;
+        el.baseD.value = state.baseD;
+        sync();
+      });
+    });
+
+    el.depParent.addEventListener('change', function () {
+      state.depParent = Number(el.depParent.value) || 0;
+      sync();
+    });
+    el.depSpouseParent.addEventListener('change', function () {
+      state.depSpouseParent = Number(el.depSpouseParent.value) || 0;
+      sync();
+    });
+    el.depChild.addEventListener('change', function () {
+      state.depChild = Number(el.depChild.value) || 0;
+      sync();
+    });
+
+    el.acctSel.addEventListener('change', function () {
+      state.acctIdx = Number(el.acctSel.value) || 0;
+      sync();
+    });
+    el.joinD.addEventListener('change', function () {
+      state.joinD = el.joinD.value;
+      sync();
+    });
+    el.acctBirthD.addEventListener('change', function () {
+      state.acctBirthD = el.acctBirthD.value;
+      sync();
+    });
+    el.spouseAcct.addEventListener('change', function () {
+      state.spouseAcct = Number(el.spouseAcct.value) || 0;
+      sync();
+    });
+
+    el.regionSel.addEventListener('change', function () {
+      state.region = DEPOSIT[el.regionSel.value] ? el.regionSel.value : 'seoul';
+      sync();
+    });
+    el.depositInput.addEventListener('input', function () {
+      var cleaned = cleanInt(el.depositInput.value);
+      if (cleaned !== el.depositInput.value) el.depositInput.value = cleaned;
+      state.deposit = toInt(cleaned);
+      sync();
+    });
+    el.depositInput.addEventListener('focus', function () {
+      var plain = el.depositInput.value.split(',').join('');
+      if (plain !== el.depositInput.value) el.depositInput.value = plain;
+    });
+    el.depositInput.addEventListener('blur', function () {
+      el.depositInput.value = state.deposit > 0 ? thousands(state.deposit) : '';
+    });
+
+    el.saveBtn.addEventListener('click', function () {
+      if (persist()) showMessage('이 브라우저에 저장했습니다.', 'ok');
+      else showMessage('이 브라우저에서는 저장을 쓸 수 없습니다.', 'warn');
+      if (msgTimer) window.clearTimeout(msgTimer);
+      msgTimer = window.setTimeout(function () {
+        showMessage('입력값은 이 브라우저에만 저장되고 어디로도 전송되지 않습니다.');
+      }, 2600);
+    });
+
+    el.resetBtn.addEventListener('click', function () {
+      state.homeMode = 'bracket';
+      state.homeIdx = 0;
+      state.ownHouse = false;
+      state.birthD = '';
+      state.marryD = '';
+      state.soldD = '';
+      state.baseD = DEFAULT_BASE;
+      state.spouse = 0;
+      state.depParent = 0;
+      state.depSpouseParent = 0;
+      state.depChild = 0;
+      state.acctMode = 'bracket';
+      state.acctIdx = 0;
+      state.joinD = '';
+      state.acctBirthD = '';
+      state.spouseAcct = 0;
+      state.region = 'seoul';
+      state.deposit = 0;
+      try { window.localStorage.removeItem(KEY); } catch (e) { /* 무시 */ }
+      applyStateToControls();
+      sync();
+      showMessage('입력값을 초기화했습니다.', 'ok');
+      if (msgTimer) window.clearTimeout(msgTimer);
+      msgTimer = window.setTimeout(function () {
+        showMessage('입력값은 이 브라우저에만 저장되고 어디로도 전송되지 않습니다.');
+      }, 2600);
+    });
+  }
+
+  /* ================= 시작 ================= */
+  function start() {
+    el = {
+      totalPts: document.getElementById('totalPts'),
+      totalGrade: document.getElementById('totalGrade'),
+      barHome: document.getElementById('barHome'),
+      barDep: document.getElementById('barDep'),
+      barAcct: document.getElementById('barAcct'),
+      fillHome: document.getElementById('fillHome'),
+      fillDep: document.getElementById('fillDep'),
+      fillAcct: document.getElementById('fillAcct'),
+      homePts: document.getElementById('homePts'),
+      homeDetail: document.getElementById('homeDetail'),
+      homeSel: document.getElementById('homeSel'),
+      ownHouse: document.getElementById('ownHouse'),
+      birthD: document.getElementById('birthD'),
+      marryD: document.getElementById('marryD'),
+      soldD: document.getElementById('soldD'),
+      baseD: document.getElementById('baseD'),
+      homeBracketPane: document.getElementById('homeBracketPane'),
+      homeDatePane: document.getElementById('homeDatePane'),
+      homeCalcNote: document.getElementById('homeCalcNote'),
+      depPts: document.getElementById('depPts'),
+      depDetail: document.getElementById('depDetail'),
+      depParent: document.getElementById('depParent'),
+      depSpouseParent: document.getElementById('depSpouseParent'),
+      depChild: document.getElementById('depChild'),
+      acctPts: document.getElementById('acctPts'),
+      acctDetail: document.getElementById('acctDetail'),
+      acctSel: document.getElementById('acctSel'),
+      joinD: document.getElementById('joinD'),
+      acctBirthD: document.getElementById('acctBirthD'),
+      spouseAcct: document.getElementById('spouseAcct'),
+      acctBracketPane: document.getElementById('acctBracketPane'),
+      acctDatePane: document.getElementById('acctDatePane'),
+      regionSel: document.getElementById('regionSel'),
+      depositInput: document.getElementById('depositInput'),
+      depChips: document.getElementById('depChips'),
+      depMax: document.getElementById('depMax'),
+      depSub: document.getElementById('depSub'),
+      depList: document.getElementById('depList'),
+      storeMsg: document.getElementById('storeMsg'),
+      saveBtn: document.getElementById('saveBtn'),
+      resetBtn: document.getElementById('resetBtn')
+    };
+
+    buildSelects();
+    restore();
+    applyStateToControls();
+    bind();
+    sync(false);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+
+  /* 테스트용 노출 (계산만, 화면과 무관) */
+  window.CheongyakCalc = {
+    DEPOSIT: DEPOSIT,
+    TIER_LABEL: TIER_LABEL,
+    ptsHomeBracket: ptsHomeBracket,
+    ptsHomeFromMonths: ptsHomeFromMonths,
+    ptsDependents: ptsDependents,
+    ptsAcctBracket: ptsAcctBracket,
+    ptsAcctFromMonths: ptsAcctFromMonths,
+    ptsSpouse: ptsSpouse,
+    combineAcct: combineAcct,
+    depositNeed: depositNeed,
+    maxAreaTier: maxAreaTier,
+    homeMonthsFromDates: homeMonthsFromDates,
+    acctMonthsFromDates: acctMonthsFromDates,
+    fullMonths: fullMonths,
+    addYears: addYears,
+    parseDate: parseDate
+  };
+})();
+</script>
+</body>
+</html>
