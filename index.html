@@ -63,6 +63,15 @@
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:520px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom))}
+  .topnav{display:flex;justify-content:flex-end;margin:0 2px 10px}
+  .pill-link{
+    display:inline-flex;align-items:center;gap:4px;min-height:34px;
+    font-size:12.5px;font-weight:700;color:var(--accent);text-decoration:none;
+    background:var(--accent-soft);border:1px solid var(--line);border-radius:999px;
+    padding:7px 13px;text-align:right;
+  }
+  .pill-link:hover{border-color:var(--accent)}
+  .pill-link:active{transform:scale(.98)}
   .hero{margin:4px 4px 16px}
   h1{font-size:22px;line-height:1.3;margin:0 0 6px;letter-spacing:-.02em}
   .hero p{margin:0;color:var(--muted);font-size:13.5px}
@@ -186,6 +195,8 @@
   .note[data-state="ok"]{color:var(--ok)}
   .note[data-state="warn"]{color:var(--warn)}
   footer{margin:18px 6px 0;text-align:center;font-size:11.5px;line-height:1.6;color:var(--muted)}
+  footer a{color:var(--accent);font-weight:700;text-decoration:none}
+  .footer-nav{margin:8px 0 0}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important;animation:none !important}
@@ -195,6 +206,7 @@
 <body>
 <div class="wrap">
   <header class="hero">
+    <div class="topnav"><a class="pill-link" href="./cheongyak/">🏠 청약 가점 계산기 →</a></div>
     <h1>엔화·면세 빠른 계산기</h1>
     <p>일본 쇼핑할 때 필요한 환산·면세·나눠 내기를 한 화면에서</p>
   </header>
@@ -290,6 +302,7 @@
   <footer>
     환율은 참고용입니다. 실제 카드 청구액은 카드사 환율과 해외이용 수수료에 따라 달라질 수 있습니다.<br>
     면세 기준(5,000엔)·수수료율은 매장 정책에 따라 다를 수 있습니다.
+    <p class="footer-nav"><a href="./cheongyak/">🏠 청약 가점·예치금 계산기</a></p>
   </footer>
 </div>
 
