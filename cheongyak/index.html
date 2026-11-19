@@ -697,7 +697,7 @@
   function homeResult() {
     if (state.ownHouse) return { pts: 0, detail: '유주택' };
     if (state.homeMode === 'bracket') {
-      return { pts: ptsHomeBracket(state.homeIdx), detail: state.homeIdx === 0 ? '만 30세 미만 미혼' : '' };
+      return { pts: ptsHomeBracket(state.homeIdx), detail: '' };
     }
     var r = homeMonthsFromDates(state.birthD, state.marryD, state.soldD, state.baseD);
     if (!r.ok) return { pts: 0, detail: '생년월일 입력 필요' };
