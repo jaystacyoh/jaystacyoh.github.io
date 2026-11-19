@@ -189,14 +189,14 @@
 
   /* 표 */
   .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
-  table{border-collapse:collapse;width:100%;font-size:12px;min-width:430px}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:400px}
   caption{caption-side:top;text-align:left;font-size:11.5px;color:var(--muted);padding:0 0 8px}
-  th,td{padding:8px 7px;border-bottom:1px solid var(--line);text-align:center;font-variant-numeric:tabular-nums}
+  th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
   th{font-size:11px;font-weight:800;color:var(--muted);background:var(--field);white-space:nowrap}
   th:first-child,td:first-child{text-align:left;white-space:nowrap}
   tbody tr:last-child td{border-bottom:0}
   td b{font-weight:800}
-  .ratio-key{font-weight:800}
+  .ratio-key{font-weight:800;font-size:14px;color:var(--text)}
   .ratio-key.win{color:var(--accent)}
 
   ul.tips{margin:0;padding-left:17px;font-size:12.5px;line-height:1.65;color:var(--muted)}
@@ -229,9 +229,9 @@
         <span class="stamp">84점 만점</span>
       </div>
       <div class="total-line">
-        <strong id="totalPts">5</strong>
+        <strong id="totalPts">6</strong>
         <span>/ 84점</span>
-        <span class="grade" id="totalGrade">여지 +79점</span>
+        <span class="grade" id="totalGrade">여지 +78점</span>
       </div>
       <ul class="bars">
         <li class="bar-row">
@@ -243,8 +243,8 @@
           <span class="bar"><i id="fillDep" style="width:14.3%"></i></span>
         </li>
         <li class="bar-row">
-          <span>청약통장 가입기간</span><b><span id="barAcct">0</span> / 17</b>
-          <span class="bar"><i id="fillAcct" style="width:0%"></i></span>
+          <span>청약통장 가입기간</span><b><span id="barAcct">1</span> / 17</b>
+          <span class="bar"><i id="fillAcct" style="width:5.9%"></i></span>
         </li>
       </ul>
       <div class="chips">
@@ -421,7 +421,7 @@
       </div>
       <div class="table-wrap">
         <table>
-          <caption>가로로 밀어서 볼 수 있습니다. 「주택공급에 관한 규칙」 제28조 기준.</caption>
+          <caption>숫자는 <b>가점제 % / 추첨제 %</b>입니다. 「주택공급에 관한 규칙」 제28조 기준.</caption>
           <thead>
             <tr>
               <th scope="col">전용면적</th>
@@ -433,21 +433,21 @@
           <tbody>
             <tr>
               <td>60㎡ 이하</td>
-              <td><span class="ratio-key win">가점 40%</span> / 추첨 60%</td>
-              <td><span class="ratio-key win">가점 40%</span> / 추첨 60%</td>
-              <td>가점 40% 이하 / 추첨 60% 이상</td>
+              <td><span class="ratio-key win">40</span> / 60</td>
+              <td><span class="ratio-key win">40</span> / 60</td>
+              <td>40 이하 / 60 이상</td>
             </tr>
             <tr>
               <td>60㎡ 초과 ~ 85㎡ 이하</td>
-              <td><span class="ratio-key win">가점 70%</span> / 추첨 30%</td>
-              <td><span class="ratio-key win">가점 70%</span> / 추첨 30%</td>
-              <td>가점 40% 이하 / 추첨 60% 이상</td>
+              <td><span class="ratio-key win">70</span> / 30</td>
+              <td><span class="ratio-key win">70</span> / 30</td>
+              <td>40 이하 / 60 이상</td>
             </tr>
             <tr>
               <td>85㎡ 초과</td>
-              <td><span class="ratio-key win">가점 80%</span> / 추첨 20%</td>
-              <td><span class="ratio-key win">가점 50%</span> / 추첨 50%</td>
-              <td>추첨 100%</td>
+              <td><span class="ratio-key win">80</span> / 20</td>
+              <td><span class="ratio-key win">50</span> / 50</td>
+              <td>추첨 100</td>
             </tr>
           </tbody>
         </table>
